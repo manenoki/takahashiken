@@ -1,0 +1,98 @@
+#include<stdio.h>
+#include<random>
+#define N 4
+#define M 7
+#define INF 100000
+
+int main(void){
+  std::mt19937 mt(28);
+  std::uniform_real_distribution<double> r_rand(0.0, 1.0);
+  int i, j, k, x[M], ans[N], w[N], e[M], y[N], jsum, sum = 0,sumc = 0, p,run;
+  double ran;
+  double eps = 0.1;
+  int G[N][M] = { { 1, 0, 0, 0, 1, 1, 0 }, { 0, 1, 0, 0, 1, 0, 1 }, { 0, 0, 1, 0, 1, 1, 1 }, { 0, 0, 0, 1, 0, 1, 1 } };
+  int h[16][M], hk, min, minh;//hkåå儈儞僌嫍棧
+
+
+  //for (eps = 0.0001; eps <= 0.0011; eps += 0.0001){
+  for (i = 0; i < N; i++){
+    for (j = 0; j < M; j++){
+      printf("%d", G[i][j]);
+    }
+    printf("\n");
+  }
+  for (i = 0; i < 16; i++){
+
+    h[i][3] = i % 2;
+    h[i][2] = (i / 2) % 2;
+    h[i][1] = (i / 4) % 2;
+    h[i][0] = (i / 8) % 2;
+
+    for (j = N; j < M; j++){
+      h[i][j] = h[i][0] * G[0][j];
+      for (k = 1; k < N; k++){
+	h[i][j] = h[i][j] ^ (h[i][k] * G[k][j]);
+      }
+    }
+
+  }
+
+
+  for (eps = 0.0025; eps <= 0.1025; eps += 0.01){
+    sum=sumc = 0;
+    for (run = 0; run < INF; run++){
+
+      for (j = 0; j < N; j++){
+	ran = r_rand(mt);
+
+	w[j] = ran <= 0.5 ? 0 : 1;
+      }
+
+      for (i = 0; i < M; i++){
+	x[i] = w[0] * G[0][i];
+	for (j = 1; j < N; j++){
+	  x[i] = x[i] ^ (w[j] * G[j][i]);
+	}
+      }
+      for (j = 0; j < M; j++){
+	ran = r_rand(mt);
+	e[j] = ran <= eps ? 1 : 0;
+      }
+      for (j = 0; j < M; j++){
+	y[j] = x[j] == e[j] ? 0 : 1;
+      }
+
+
+
+      min = M;
+      for (i = 0; i < 16; i++){
+	hk = 0;
+	for (j = 0; j < M; j++){
+	  hk += (h[i][j] - y[j])*(h[i][j] - y[j]);
+	}
+
+	if (hk < min){
+	  min = hk;
+	  minh = i;
+	}
+      }
+
+      for (j = 0; j < N; j++){
+	ans[j] = h[minh][j];
+      }
+      hk = 0;
+      for (j = 0; j < N; j++){
+	hk += (ans[j] - w[j])*(ans[j] - w[j]);
+      }
+      if(hk!=0){sumc+=1;}
+      sum += hk;
+
+    }
+    printf("eps=%f,ビット率=%f\n", eps, double(sum) / double(N*INF));
+    printf("eps=%f,ブロック誤り率=%f\n", eps, double(sumc) / double(INF));
+  }
+
+
+  return 0;
+
+}
